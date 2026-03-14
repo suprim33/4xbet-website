@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>4X Bet</title>
+<style>
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+text-align:center;
+}
+
+h1{
+color:gold;
+}
+
+.box{
+background:#1e293b;
+padding:20px;
+margin:20px;
+border-radius:10px;
+}
+
+button{
+padding:10px 20px;
+background:gold;
+border:none;
+border-radius:5px;
+font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>4X BET</h1>
+<p>Owner: Suprim Timsina</p>
+
+<div class="box">
+<h2>Spin Game</h2>
+<p id="coins">Coins: 100</p>
+<button onclick="spin()">Spin</button>
+</div>
+
+<div class="box">
+<h2>Crash Game</h2>
+<p id="crash">Multiplier: 1.0x</p>
+<button onclick="startCrash()">Start</button>
+<button onclick="cashout()">Cashout</button>
+</div>
+
+<div class="box">
+<h2>Slot Machine</h2>
+<p id="slot">🍒 🍒 🍒</p>
+<button onclick="slot()">Spin Slot</button>
+</div>
+
+<script>
+
+let coins = 100;
+
+function updateCoins(){
+document.getElementById("coins").innerHTML="Coins: "+coins;
+}
+
+function spin(){
+let r = Math.random();
+
+if(r>0.7){
+coins += 30;
+alert("Big Win");
+}else{
+coins -= 10;
+alert("Try Again");
+}
+
+updateCoins();
+}
+
+function slot(){
+
+let items=["🍒","🍋","⭐","💎"];
+
+let a=items[Math.floor(Math.random()*4)];
+let b=items[Math.floor(Math.random()*4)];
+let c=items[Math.floor(Math.random()*4)];
+
+document.getElementById("slot").innerHTML=a+" "+b+" "+c;
+
+if(a==b && b==c){
+coins += 50;
+alert("JACKPOT");
+}else{
+coins -= 5;
+}
+
+updateCoins();
+}
+
+let running=false;
+let multi=1;
+
+function startCrash(){
+
+running=true;
+multi=1;
+
+let game=setInterval(function(){
+
+if(!running){
+clearInterval(game);
+return;
+}
+
+multi+=0.1;
+
+document.getElementById("crash").innerHTML="Multiplier: "+multi.toFixed(2)+"x";
+
+if(Math.random()>0.96){
+
+running=false;
+alert("CRASHED");
+
+clearInterval(game);
+
+}
+
+},200);
+
+}
+
+function cashout(){
+
+if(running){
+coins += Math.floor(multi*10);
+alert("Cashed Out");
+running=false;
+updateCoins();
+}
+
+}
+
+</script>
+
+</body>
+</html>
