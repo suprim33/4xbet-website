@@ -7,72 +7,78 @@
 <style>
 body{
 margin:0;
-font-family:Arial;
-background:#020617;
+font-family:'Segoe UI',sans-serif;
+background:linear-gradient(135deg,#020617,#0f172a);
 color:white;
 }
 
 /* LOGIN */
 #login{
-text-align:center;
-margin-top:120px;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+flex-direction:column;
 }
 
 input{
-padding:10px;
+padding:12px;
 border-radius:10px;
 border:none;
+margin:10px;
 }
 
-/* HEADER */
-.top{
+.btn{
+padding:12px 20px;
+border:none;
+border-radius:10px;
+background:#22c55e;
+color:white;
+cursor:pointer;
+}
+
+/* NAV */
+.nav{
 display:flex;
 justify-content:space-between;
 padding:15px;
-background:black;
-box-shadow:0 0 10px cyan;
+background:#000;
 }
 
 /* GRID */
 .grid{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
 gap:20px;
 padding:20px;
 }
 
 /* CARD */
 .card{
-background:#1e293b;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(10px);
 padding:20px;
-border-radius:20px;
-text-align:center;
-transition:0.3s;
-}
-
-.card:hover{
-transform:scale(1.05);
-}
-
-/* BTN */
-.btn{
-padding:10px;
-border:none;
-border-radius:10px;
-background:#00ffcc;
-margin:5px;
-cursor:pointer;
+border-radius:15px;
 }
 
 /* SLOT */
-.slot{
+.reel{
+height:60px;
+overflow:hidden;
 font-size:40px;
 }
 
-/* CRASH */
+/* CRASH GRAPH */
+canvas{
+background:#000;
+border-radius:10px;
+}
+
+/* MULTI */
 #multi{
 font-size:28px;
-color:cyan;
+color:#38bdf8;
+text-align:center;
 }
 </style>
 </head>
@@ -82,42 +88,34 @@ color:cyan;
 <!-- LOGIN -->
 <div id="login">
 <h2>4X Bet Login</h2>
-<input id="username" placeholder="Enter name">
-<br><br>
+<input id="user" placeholder="Enter name">
 <button class="btn" onclick="start()">Enter</button>
 </div>
 
 <!-- MAIN -->
 <div id="main" style="display:none">
 
-<div class="top">
-<div>👤 <span id="user"></span></div>
+<div class="nav">
+<div>🎰 4X BET</div>
 <div>💰 <span id="coins">100</span></div>
 </div>
 
 <div class="grid">
 
+<!-- SLOT -->
 <div class="card">
 <h3>🎰 Slot</h3>
-<div id="slot" class="slot">🍒 🍋 🍉</div>
+<div id="slot" class="reel">🍒 🍋 🍉</div>
 <button class="btn" onclick="slot()">Spin</button>
 </div>
 
+<!-- CRASH -->
 <div class="card">
 <h3>✈️ Crash</h3>
+<canvas id="graph" width="250" height="150"></canvas>
 <div id="multi">1.00x</div>
 <button class="btn" onclick="crash()">Start</button>
 <button class="btn" onclick="cash()">Cash</button>
-</div>
-
-<div class="card">
-<h3>🎡 Spin</h3>
-<button class="btn" onclick="spin()">Play</button>
-</div>
-
-<div class="card">
-<h3>🏆 Leaderboard</h3>
-<div id="board"></div>
 </div>
 
 </div>
@@ -125,109 +123,224 @@ color:cyan;
 
 <!-- SOUND -->
 <audio id="win" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
-<audio id="lose" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+<audio id="boom" src="https://www.soundjay.com/explosion/sounds/explosion-01.mp3"></audio>
 
 <script>
-let coins=100
-let user=""
-let run=false
-let multi=1
-let interval
+let coins=100, run=false, multi=1, int
+let ctx, x=0
 
 function start(){
-user=document.getElementById("username").value
-if(user==""){alert("Enter name");return}
-
+let name=document.getElementById("user").value
+if(name==""){alert("Enter name");return}
 document.getElementById("login").style.display="none"
 document.getElementById("main").style.display="block"
 
-document.getElementById("user").innerText=user
-
-let saved=localStorage.getItem(user)
-if(saved){coins=parseInt(saved)}
-
-update()
+ctx=document.getElementById("graph").getContext("2d")
 }
 
 /* UPDATE */
 function update(){
 document.getElementById("coins").innerText=coins
-localStorage.setItem(user,coins)
-updateBoard()
 }
 
-/* SLOT */
+/* SLOT (VERTICAL FEEL) */
 function slot(){
-let arr=["🍒","🍋","🍉","⭐"]
-let a=arr[Math.floor(Math.random()*4)]
-let b=arr[Math.floor(Math.random()*4)]
-let c=arr[Math.floor(Math.random()*4)]
+let el=document.getElementById("slot")
+let arr=["🍒","🍋","🍉","⭐","💎"]
 
-document.getElementById("slot").innerText=a+" "+b+" "+c
+let count=0
+let spin=setInterval(()=>{
+el.innerText=arr[Math.floor(Math.random()*5)]+" "+
+arr[Math.floor(Math.random()*5)]+" "+
+arr[Math.floor(Math.random()*5)]
+count++
+
+if(count>20){
+clearInterval(spin)
+
+let a=arr[Math.floor(Math.random()*5)]
+let b=arr[Math.floor(Math.random()*5)]
+let c=arr[Math.floor(Math.random()*5)]
+
+el.innerText=a+" "+b+" "+c
 
 if(a==b && b==c){
-coins+=100
+coins+=150
 win.play()
 }else{
-coins-=10
-lose.play()
+coins-=15
 }
 update()
 }
-
-/* SPIN */
-function spin(){
-if(Math.random()>0.7){
-coins+=40
-win.play()
-}else{
-coins-=10
-lose.play()
-}
-update()
+},60)
 }
 
-/* CRASH */
+/* CRASH GRAPH */
 function crash(){
 if(run) return
 run=true
 multi=1
+x=0
+ctx.clearRect(0,0,250,150)
 
-interval=setInterval(()=>{
+int=setInterval(()=>{
 multi+=0.05
 document.getElementById("multi").innerText=multi.toFixed(2)+"x"
 
-if(Math.random()>0.96){
-clearInterval(interval)
+ctx.fillStyle="cyan"
+ctx.fillRect(x,150-multi*20,2,2)
+x+=2
+
+if(Math.random()>0.97){
+clearInterval(int)
 run=false
+boom.play()
 alert("💥 Crash at "+multi.toFixed(2))
 }
-},200)
+},100)
 }
 
 function cash(){
 if(!run) return
-
-coins+=Math.floor(multi*25)
-win.play()
-
-clearInterval(interval)
+coins+=Math.floor(multi*30)
+clearInterval(int)
 run=false
+win.play()
 update()
-}
-
-/* LEADERBOARD */
-function updateBoard(){
-let board=document.getElementById("board")
-board.innerHTML=""
-
-for(let i=0;i<localStorage.length;i++){
-let name=localStorage.key(i)
-let score=localStorage.getItem(name)
-board.innerHTML+=name+" — "+score+"<br>"
-}
 }
 </script>
 
 </body>
-</html>
+</html>function dice(){
+let r=Math.floor(Math.random()*6)+1
+if(r>3){
+coins+=20
+win.play()
+alert("🎲 You got "+r+" Win!")
+}else{
+coins-=10
+alert("🎲 You got "+r+" Lose!")
+}
+update()
+}
+
+function lucky(){
+let n=Math.floor(Math.random()*10)
+if(n==7){
+coins+=100
+win.play()
+alert("🎉 Lucky 7 JACKPOT!")
+}else{
+coins-=10
+alert("Number: "+n)
+}
+update()
+}loadScore()saveScore()let bet=10
+
+function increaseBet(){
+bet+=10
+alert("Bet: "+bet)
+}
+
+function decreaseBet(){
+bet=Math.max(10,bet-10)
+alert("Bet: "+bet)
+}<div class="card">
+<h3>💰 Bet Control</h3>
+<button class="btn" onclick="increaseBet()">+</button>
+<button class="btn" onclick="decreaseBet()">-</button>
+</div>.card{
+animation:fade 0.5s ease;
+}
+
+@keyframes fade{
+from{opacity:0;transform:translateY(10px)}
+to{opacity:1;transform:translateY(0)}
+}let canvas,ctx,x=0
+
+function setupGraph(){
+canvas=document.createElement("canvas")
+canvas.width=300
+canvas.height=150
+document.querySelector("#multi").before(canvas)
+ctx=canvas.getContext("2d")
+}
+
+function crash(){
+if(run) return
+run=true
+multi=1
+x=0
+ctx.clearRect(0,0,300,150)
+
+int=setInterval(()=>{
+multi+=0.05
+
+document.getElementById("multi").innerText=multi.toFixed(2)+"x"
+
+ctx.fillStyle="lime"
+ctx.fillRect(x,150-multi*20,2,2)
+x+=3
+
+if(Math.random()>0.97){
+clearInterval(int)
+run=false
+boom.play()
+alert("💥 Crash at "+multi.toFixed(2))
+}
+},100)
+}setupGraph()function slot(){
+let el=document.getElementById("slot")
+let arr=["🍒","🍋","🍉","⭐","💎"]
+
+let spin=setInterval(()=>{
+el.style.transform="translateY(-10px)"
+el.innerText=
+arr[Math.floor(Math.random()*5)]+" "+
+arr[Math.floor(Math.random()*5)]+" "+
+arr[Math.floor(Math.random()*5)]
+},50)
+
+setTimeout(()=>{
+clearInterval(spin)
+el.style.transform="translateY(0)"
+
+let a=arr[Math.floor(Math.random()*5)]
+let b=arr[Math.floor(Math.random()*5)]
+let c=arr[Math.floor(Math.random()*5)]
+
+el.innerText=a+" "+b+" "+c
+
+if(a==b && b==c){
+coins+=bet*10
+win.play()
+}else{
+coins-=bet
+lose.play()
+}
+update()
+},1200)
+}<div>👤 <span id="uname"></span></div>let username=""
+
+function start(){
+username=document.getElementById("user").value
+if(username==""){alert("Enter name");return}
+
+document.getElementById("uname").innerText=usernamefunction save(){
+localStorage.setItem(username,coins)
+}
+
+function load(){
+let s=localStorage.getItem(username)
+if(s){coins=parseInt(s)}
+}load()save().nav{
+box-shadow:0 0 20px cyan;
+}
+
+.card{
+box-shadow:0 0 10px rgba(0,255,255,0.2);
+}
+
+.btn{
+box-shadow:0 0 10px #22c55e;
+}
