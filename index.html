@@ -1,346 +1,277 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>4X Bet Ultimate</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4X BET FINAL BOSS</title>
 
 <style>
 body{
-margin:0;
-font-family:'Segoe UI',sans-serif;
-background:linear-gradient(135deg,#020617,#0f172a);
-color:white;
+ margin:0;
+ font-family:sans-serif;
+ background:linear-gradient(135deg,#020617,#000);
+ color:white;
 }
 
-/* LOGIN */
-#login{
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-flex-direction:column;
+/* HEADER */
+.header{
+ display:flex;
+ justify-content:space-between;
+ padding:12px;
+ background:#000;
+ box-shadow:0 0 20px cyan;
 }
 
-input{
-padding:12px;
-border-radius:10px;
-border:none;
-margin:10px;
+/* SCREENS */
+.screen{display:none;}
+.active{display:block;}
+
+/* CARD */
+.card{
+ margin:10px;
+ padding:15px;
+ border-radius:15px;
+ background:#111;
+ box-shadow:0 0 20px rgba(0,255,255,0.3);
 }
 
-.btn{
-padding:12px 20px;
-border:none;
-border-radius:10px;
-background:#22c55e;
-color:white;
-cursor:pointer;
+/* BUTTON */
+button{
+ padding:10px;
+ margin:5px;
+ border:none;
+ border-radius:10px;
+ background:#22c55e;
+ color:white;
+ font-weight:bold;
+}
+
+/* SLOT */
+#slot{
+ font-size:32px;
+ letter-spacing:8px;
+ transition:0.3s;
 }
 
 /* NAV */
 .nav{
-display:flex;
-justify-content:space-between;
-padding:15px;
-background:#000;
+ position:fixed;
+ bottom:0;
+ width:100%;
+ display:flex;
+ justify-content:space-around;
+ background:#000;
+ padding:10px;
 }
 
-/* GRID */
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:20px;
-padding:20px;
+/* LIVE */
+.live{
+ color:lime;
+ animation:blink 1s infinite;
 }
+@keyframes blink{50%{opacity:0.3}}
 
-/* CARD */
-.card{
-background:rgba(255,255,255,0.05);
-backdrop-filter:blur(10px);
-padding:20px;
-border-radius:15px;
-}
-
-/* SLOT */
-.reel{
-height:60px;
-overflow:hidden;
-font-size:40px;
-}
-
-/* CRASH GRAPH */
-canvas{
-background:#000;
-border-radius:10px;
-}
-
-/* MULTI */
-#multi{
-font-size:28px;
-color:#38bdf8;
-text-align:center;
+/* 3D CARD */
+.card:hover{
+ transform:scale(1.05) rotateX(5deg);
+ transition:0.3s;
 }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="login">
-<h2>4X Bet Login</h2>
-<input id="user" placeholder="Enter name">
-<button class="btn" onclick="start()">Enter</button>
-</div>
-
-<!-- MAIN -->
-<div id="main" style="display:none">
-
-<div class="nav">
+<div class="header">
 <div>🎰 4X BET</div>
-<div>💰 <span id="coins">100</span></div>
+<div>💰 <span id="coins">1000</span></div>
 </div>
 
-<div class="grid">
-
-<!-- SLOT -->
+<!-- LOGIN -->
+<div id="login" class="screen active">
 <div class="card">
-<h3>🎰 Slot</h3>
-<div id="slot" class="reel">🍒 🍋 🍉</div>
-<button class="btn" onclick="slot()">Spin</button>
+<h3>👤 Login</h3>
+<input id="user" placeholder="Username">
+<button onclick="login()">Enter</button>
+</div>
 </div>
 
-<!-- CRASH -->
+<!-- HOME -->
+<div id="home" class="screen">
 <div class="card">
-<h3>✈️ Crash</h3>
-<canvas id="graph" width="250" height="150"></canvas>
-<div id="multi">1.00x</div>
-<button class="btn" onclick="crash()">Start</button>
-<button class="btn" onclick="cash()">Cash</button>
+<h3>🎮 All Games</h3>
+<button onclick="spin()">Slot</button>
+<button onclick="dice()">Dice</button>
+<button onclick="flip()">Flip</button>
+<button onclick="color()">Color</button>
+<button onclick="number()">Number</button>
+<button onclick="roulette()">Roulette</button>
+<button onclick="hiLo()">Hi-Lo</button>
+<button onclick="crash()">Crash</button>
+<button onclick="mine()">Mines</button>
+<button onclick="wheel()">Wheel</button>
+</div>
 </div>
 
+<!-- SPORTS -->
+<div id="sports" class="screen">
+<div class="card">
+<h3 class="live">⚽ LIVE MATCH</h3>
+<p>Nepal vs India (Demo)</p>
+<button onclick="bet(1)">Nepal</button>
+<button onclick="bet(0)">India</button>
 </div>
 </div>
 
-<!-- SOUND -->
+<!-- WALLET -->
+<div id="wallet" class="screen">
+<div class="card">
+<h3>💳 Wallet</h3>
+<button onclick="deposit()">+200</button>
+<button onclick="withdraw()">-100</button>
+</div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+<button onclick="show('home')">🏠</button>
+<button onclick="show('sports')">⚽</button>
+<button onclick="show('wallet')">💰</button>
+</div>
+
 <audio id="win" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
-<audio id="boom" src="https://www.soundjay.com/explosion/sounds/explosion-01.mp3"></audio>
+<audio id="lose" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
 
 <script>
-let coins=100, run=false, multi=1, int
-let ctx, x=0
-
-function start(){
-let name=document.getElementById("user").value
-if(name==""){alert("Enter name");return}
-document.getElementById("login").style.display="none"
-document.getElementById("main").style.display="block"
-
-ctx=document.getElementById("graph").getContext("2d")
-}
+let coins=1000
+let username=""
 
 /* UPDATE */
 function update(){
-document.getElementById("coins").innerText=coins
+ document.getElementById("coins").innerText=coins
 }
 
-/* SLOT (VERTICAL FEEL) */
-function slot(){
-let el=document.getElementById("slot")
-let arr=["🍒","🍋","🍉","⭐","💎"]
-
-let count=0
-let spin=setInterval(()=>{
-el.innerText=arr[Math.floor(Math.random()*5)]+" "+
-arr[Math.floor(Math.random()*5)]+" "+
-arr[Math.floor(Math.random()*5)]
-count++
-
-if(count>20){
-clearInterval(spin)
-
-let a=arr[Math.floor(Math.random()*5)]
-let b=arr[Math.floor(Math.random()*5)]
-let c=arr[Math.floor(Math.random()*5)]
-
-el.innerText=a+" "+b+" "+c
-
-if(a==b && b==c){
-coins+=150
-win.play()
-}else{
-coins-=15
-}
-update()
-}
-},60)
+/* LOGIN */
+function login(){
+ username=document.getElementById("user").value
+ if(username==""){alert("Enter name");return}
+ show('home')
 }
 
-/* CRASH GRAPH */
+/* NAV */
+function show(id){
+ document.querySelectorAll(".screen").forEach(e=>e.classList.remove("active"))
+ document.getElementById(id).classList.add("active")
+}
+
+/* SOUND */
+let win=document.getElementById("win")
+let lose=document.getElementById("lose")
+
+/* SLOT */
+function spin(){
+ let arr=["🍒","🍋","⭐","💎"]
+ let a=arr[Math.floor(Math.random()*4)]
+ let b=arr[Math.floor(Math.random()*4)]
+ let c=arr[Math.floor(Math.random()*4)]
+ alert(a+" "+b+" "+c)
+ if(a==b && b==c){coins+=150;win.play()}
+ else{coins-=30;lose.play()}
+ update()
+}
+
+/* DICE */
+function dice(){
+ let r=Math.random()
+ if(r>0.5){coins+=40;win.play()}
+ else{coins-=20;lose.play()}
+ update()
+}
+
+/* FLIP */
+function flip(){
+ if(Math.random()>0.5){coins+=30;win.play()}
+ else{coins-=15;lose.play()}
+ update()
+}
+
+/* COLOR */
+function color(){
+ if(Math.random()>0.5){coins+=35;win.play()}
+ else{coins-=20;lose.play()}
+ update()
+}
+
+/* NUMBER */
+function number(){
+ let n=Math.floor(Math.random()*10)
+ alert("Number "+n)
+ if(n>5){coins+=40;win.play()}
+ else{coins-=20;lose.play()}
+ update()
+}
+
+/* ROULETTE */
+function roulette(){
+ let n=Math.floor(Math.random()*36)
+ alert("Roulette "+n)
+ if(n%2==0){coins+=60;win.play()}
+ else{coins-=30;lose.play()}
+ update()
+}
+
+/* HI-LO */
+function hiLo(){
+ if(Math.random()>0.5){coins+=40;win.play()}
+ else{coins-=20;lose.play()}
+ update()
+}
+
+/* CRASH */
 function crash(){
-if(run) return
-run=true
-multi=1
-x=0
-ctx.clearRect(0,0,250,150)
-
-int=setInterval(()=>{
-multi+=0.05
-document.getElementById("multi").innerText=multi.toFixed(2)+"x"
-
-ctx.fillStyle="cyan"
-ctx.fillRect(x,150-multi*20,2,2)
-x+=2
-
-if(Math.random()>0.97){
-clearInterval(int)
-run=false
-boom.play()
-alert("💥 Crash at "+multi.toFixed(2))
-}
-},100)
+ let multi=1
+ let int=setInterval(()=>{
+  multi+=0.1
+  if(Math.random()>0.95){
+   clearInterval(int)
+   if(confirm("Cash at "+multi.toFixed(2)+"?")){
+    coins+=Math.floor(multi*80);win.play()
+   }else{
+    coins-=40;lose.play()
+   }
+   update()
+  }
+ },100)
 }
 
-function cash(){
-if(!run) return
-coins+=Math.floor(multi*30)
-clearInterval(int)
-run=false
-win.play()
+/* MINES */
+function mine(){
+ if(Math.random()>0.7){coins+=100;win.play()}
+ else{coins-=50;lose.play()}
+ update()
+}
+
+/* WHEEL */
+function wheel(){
+ let n=Math.floor(Math.random()*5)
+ alert("Wheel "+n)
+ if(n==0){coins+=200;win.play()}
+ else{coins-=30;lose.play()}
+ update()
+}
+
+/* SPORTS */
+function bet(t){
+ let winTeam=Math.random()>0.5?1:0
+ if(t==winTeam){coins+=80;win.play()}
+ else{coins-=40;lose.play()}
+ update()
+}
+
+/* WALLET */
+function deposit(){coins+=200;update()}
+function withdraw(){coins-=100;update()}
+
 update()
-}
 </script>
 
 </body>
-</html>function dice(){
-let r=Math.floor(Math.random()*6)+1
-if(r>3){
-coins+=20
-win.play()
-alert("🎲 You got "+r+" Win!")
-}else{
-coins-=10
-alert("🎲 You got "+r+" Lose!")
-}
-update()
-}
-
-function lucky(){
-let n=Math.floor(Math.random()*10)
-if(n==7){
-coins+=100
-win.play()
-alert("🎉 Lucky 7 JACKPOT!")
-}else{
-coins-=10
-alert("Number: "+n)
-}
-update()
-}loadScore()saveScore()let bet=10
-
-function increaseBet(){
-bet+=10
-alert("Bet: "+bet)
-}
-
-function decreaseBet(){
-bet=Math.max(10,bet-10)
-alert("Bet: "+bet)
-}<div class="card">
-<h3>💰 Bet Control</h3>
-<button class="btn" onclick="increaseBet()">+</button>
-<button class="btn" onclick="decreaseBet()">-</button>
-</div>.card{
-animation:fade 0.5s ease;
-}
-
-@keyframes fade{
-from{opacity:0;transform:translateY(10px)}
-to{opacity:1;transform:translateY(0)}
-}let canvas,ctx,x=0
-
-function setupGraph(){
-canvas=document.createElement("canvas")
-canvas.width=300
-canvas.height=150
-document.querySelector("#multi").before(canvas)
-ctx=canvas.getContext("2d")
-}
-
-function crash(){
-if(run) return
-run=true
-multi=1
-x=0
-ctx.clearRect(0,0,300,150)
-
-int=setInterval(()=>{
-multi+=0.05
-
-document.getElementById("multi").innerText=multi.toFixed(2)+"x"
-
-ctx.fillStyle="lime"
-ctx.fillRect(x,150-multi*20,2,2)
-x+=3
-
-if(Math.random()>0.97){
-clearInterval(int)
-run=false
-boom.play()
-alert("💥 Crash at "+multi.toFixed(2))
-}
-},100)
-}setupGraph()function slot(){
-let el=document.getElementById("slot")
-let arr=["🍒","🍋","🍉","⭐","💎"]
-
-let spin=setInterval(()=>{
-el.style.transform="translateY(-10px)"
-el.innerText=
-arr[Math.floor(Math.random()*5)]+" "+
-arr[Math.floor(Math.random()*5)]+" "+
-arr[Math.floor(Math.random()*5)]
-},50)
-
-setTimeout(()=>{
-clearInterval(spin)
-el.style.transform="translateY(0)"
-
-let a=arr[Math.floor(Math.random()*5)]
-let b=arr[Math.floor(Math.random()*5)]
-let c=arr[Math.floor(Math.random()*5)]
-
-el.innerText=a+" "+b+" "+c
-
-if(a==b && b==c){
-coins+=bet*10
-win.play()
-}else{
-coins-=bet
-lose.play()
-}
-update()
-},1200)
-}<div>👤 <span id="uname"></span></div>let username=""
-
-function start(){
-username=document.getElementById("user").value
-if(username==""){alert("Enter name");return}
-
-document.getElementById("uname").innerText=usernamefunction save(){
-localStorage.setItem(username,coins)
-}
-
-function load(){
-let s=localStorage.getItem(username)
-if(s){coins=parseInt(s)}
-}load()save().nav{
-box-shadow:0 0 20px cyan;
-}
-
-.card{
-box-shadow:0 0 10px rgba(0,255,255,0.2);
-}
-
-.btn{
-box-shadow:0 0 10px #22c55e;
-}
+</html>
